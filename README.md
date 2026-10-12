@@ -30,15 +30,17 @@ the same results as a plain native build, on Linux and on Windows.
 
 ## What you bring
 
-The ROM files of the machine you choose. The Spectrum's ROMs belong to
-Amstrad, who allow them to be distributed with emulators, and they come with
-Fuse itself and with most other Spectrum emulators; this core does not
-include them. Chimera's Firmware page lists the files a machine needs, by
-the names Fuse uses (`48.rom`, `128-0.rom` and so on). The ZX Spectrum SE
-needs `se-0.rom` and `se-1.rom`, which are free software and also come with
-Fuse.
+For twelve of the sixteen machines, nothing but a program: their ROMs are
+part of the core. They are the ROMs Fuse itself is distributed with. The
+Spectrum's belong to Amstrad, who allow them to be distributed with
+emulators; the Spectrum SE's are free software.
 
-And a program: a tape (`.tap`, `.tzx`, `.pzx`, `.csw`), a snapshot (`.z80`,
+The Pentagon 128, 512 and 1024 and the Scorpion ZS 256 need ROM files of
+their own, which do not come with Fuse and are not in the core. Chimera's
+Firmware page lists them, by the names Fuse uses (`128p-0.rom`, `trdos.rom`,
+`gluck.rom`, `256s-0.rom` to `256s-3.rom`).
+
+A program is: a tape (`.tap`, `.tzx`, `.pzx`, `.csw`), a snapshot (`.z80`,
 `.sna`, `.szx`), or a disc, Microdrive or cartridge image. With none the
 machine starts in its BASIC.
 
@@ -76,5 +78,8 @@ is the design log: what was decided, why, and what was measured.
 
 This repository's own code is MIT. Fuse and libspectrum are under the GNU
 General Public License version 2 or later, and so are the patches to Fuse
-here and the built package, which carries the licence texts of everything in
-it. See [LICENSE](LICENSE).
+here and the program in the built package. The package also contains the
+machines' ROMs that Fuse is distributed with, on their owners' terms:
+Amstrad's may be distributed but not sold on their own. The package carries
+the licence texts of everything in it, and Fuse's note on each ROM. See
+[LICENSE](LICENSE).

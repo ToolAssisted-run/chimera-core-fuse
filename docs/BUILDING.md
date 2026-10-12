@@ -66,27 +66,22 @@ waterbox/build-package.sh -r <chimera>
 
 ## ROMs and games for the tests
 
-A Spectrum needs its ROM, and this repository has none. The tests look for
-ROM files, by Fuse's names for them, in the folder `FUSE_TEST_ROMS` names,
-or in `tests/roms-local/` (ignored by git). They come with Fuse itself (its
-`roms/` directory), with most Spectrum emulators, and in the usual
-collections. All sixteen machines need these 26 files between them:
+The ROMs of twelve machines are built into the core when it is built, from
+the Fuse submodule's `roms/` directory (`waterbox/gen-roms.py`), so those
+machines need nothing. The Pentagon 128, 512 and 1024 and the Scorpion do:
+the tests look for their ROM files, by Fuse's names for them, in the folder
+`FUSE_TEST_ROMS` names, or in `tests/roms-local/` (ignored by git). They are
+in the usual collections of Spectrum ROMs. Seven files:
 
-    48.rom 128-0.rom 128-1.rom plus2-0.rom plus2-1.rom
-    plus3-0.rom plus3-1.rom plus3-2.rom plus3-3.rom
-    plus3e-0.rom plus3e-1.rom plus3e-2.rom plus3e-3.rom
-    tc2048.rom tc2068-0.rom tc2068-1.rom
-    128p-0.rom 128p-1.rom trdos.rom gluck.rom
+    128p-0.rom trdos.rom gluck.rom
     256s-0.rom 256s-1.rom 256s-2.rom 256s-3.rom
-    se-0.rom se-1.rom
 
-With none of your own the tests still run, on one machine: the ZX Spectrum
-SE, whose two ROMs (OpenSE BASIC, GNU GPL) the tests read from the Fuse
-submodule. That is what a CI runner does.
+Without them the tests run on the other twelve machines, which is what a CI
+runner does, and say that those four were not run.
 
 One test plays a game: Manic Miner (Software Projects, 1983), from the tape
 `FUSE_TEST_GAME` names or `tests/games-local/Manic Miner (Software
-Projects).tzx`. It needs `48.rom`.
+Projects).tzx`.
 
 ## The tests
 
@@ -101,7 +96,8 @@ failed. A skipped test is not a pass. Without `CHIMERA_ROOT` the four
 `frontend:` tests are skipped.
 
 - `upstream:z80` - Fuse's own test of its Z80 (1355 cases).
-- `upstream:unittests` - Fuse's own unit tests, natively. Needs all 26 ROMs.
+- `upstream:unittests` - Fuse's own unit tests, natively. They switch
+  through every machine, so they need the seven ROMs above.
 - `machines:sandbox` - every machine whose ROMs are there, switched on and
   run 600 frames with buttons pressed: the sandboxed core prints the native
   build's lines (where the processor is, the memory, the sound, the picture
@@ -117,6 +113,8 @@ failed. A skipped test is not a pass. Without `CHIMERA_ROOT` the four
 - `snapshot:load` - a snapshot Fuse wrote starts as the machine and with
   the screen it was taken of.
 - `settings:refused` - what cannot be run is refused with a reason.
+- `roms:built-in` - the built-in ROMs are Fuse's files, and a file of the
+  same name lying beside a machine does not replace one.
 - `game:manic-miner` - the game loaded and played.
 - `frontend:picture`, `frontend:states`, `frontend:movie`,
   `frontend:firmware` - the package in Chimera's headless runner.
@@ -141,7 +139,7 @@ CHIMERA_CORES_DIR=<chimera>/build/Cores dotnet test \
 ```sh
 build/meson-native/run-native <program or -> <a new folder> --roms <ROMs> --frames 600 --every 60 --ppm out.ppm
 build/meson-native/run-wbx build/meson-guest/core.wbx <program or -> --roms <ROMs> --frames 600 --every 60 --ppm out.ppm
-<chimera>/build/meson-linux/chimera-run <chimera>/build/Cores/fuse.chimeraCore <program> <movie> --firmware 48.rom=<ROMs>/48.rom
+<chimera>/build/meson-linux/chimera-run <chimera>/build/Cores/fuse.chimeraCore <program> <movie>
 ```
 
 The two runners take the same options (`waterbox/gate-harness.h` lists
@@ -155,26 +153,28 @@ picture so far.
 
 `chimera-run` plays a movie: to run frames with no buttons, give it an
 empty file as the movie and `--frames N --record <file>`. Without `--record`
-an empty movie has no frames to play. Each ROM is handed over with
-`--firmware <name>=<file>`.
+an empty movie has no frames to play. For a Pentagon or the Scorpion each
+ROM is handed over with `--firmware <name>=<file>`; the runners take
+`--roms <folder>`.
 
 ## What CI does
 
 `.github/workflows/chimera.yml` builds everything above from a fresh clone
 on a public runner, runs the test script, the window test and Chimera's
-package checks, and publishes the package. A runner has no ROM of Amstrad's
-and no game, so there the tests run on the Spectrum SE alone, and the three
-that cannot (the other machines, Fuse's unit tests, the game) are skipped;
-the workflow asks for the others by name, so that a run that skipped
-everything cannot pass.
+package checks, and publishes the package. A runner has no Pentagon or
+Scorpion ROM and no game, so there the tests run on the twelve machines
+whose ROMs are built in; Fuse's unit tests and the game are skipped, and the
+workflow asks for the others by name, so that a run that skipped everything
+cannot pass.
 
 ## When something goes wrong
 
 - `extern/fuse is partly patched`: a file under `extern/fuse` was edited
   without updating the patches. Run `waterbox/make-patches.sh` (add the file
   to its list first if it is a new one), or start again as the message says.
-- `couldn't find ROM '48.rom'`: the machine's ROM was not handed over
-  (`--roms`, `--firmware`, or Chimera's Firmware page).
+- `couldn't find ROM '128p-0.rom'` (or another): a Pentagon's or the
+  Scorpion's ROM was not handed over (`--roms`, `--firmware`, or Chimera's
+  Firmware page).
 - `the core asked for system call N, which the sandbox does not provide`:
   something in Fuse called the operating system in a way the sandbox does
   not have. `waterbox/guest-syscalls.c` is where such calls are answered.

@@ -1,8 +1,8 @@
 {
   "package": "fuse",
   "effectiveTerms": "GPL-2.0-or-later",
-  "commercialUse": "allowed under the GPL",
-  "note": "The core is Fuse, the Free Unix Spectrum Emulator (GPL-2.0-or-later), with libspectrum (GPL-2.0-or-later) and zlib (Zlib licence), built with this repository's patches (GPL-2.0-or-later) and integration (MIT). The built core is distributed under the GPL version 2 or later. Inside Fuse are Blip_Buffer by Shay Green (LGPL-2.1-or-later), the SNES NTSC filter by Shay Green (LGPL-2.1-or-later) and scalers from ScummVM (GPL-2.0-or-later). The package contains no ROM of any computer: the machines' ROMs are firmware the user supplies. It contains no game.",
+  "commercialUse": "allowed under the GPL for the program; the ROMs inside may be distributed but not sold on their own (see the ROMs' entry)",
+  "note": "The core is Fuse, the Free Unix Spectrum Emulator (GPL-2.0-or-later), with libspectrum (GPL-2.0-or-later) and zlib (Zlib licence), built with this repository's patches (GPL-2.0-or-later) and integration (MIT). The program is distributed under the GPL version 2 or later. Inside Fuse are Blip_Buffer and the SNES NTSC filter by Shay Green (LGPL-2.1-or-later) and scalers from ScummVM (GPL-2.0-or-later). The package also contains the ROMs of the machines that Fuse itself is distributed with, built into the core: the ZX Spectrum 48K, 128, +2, +2A/+3 and Timex TC2048 ROMs (copyright Amstrad, who allow their distribution but retain the copyright; they may not be sold on their own), the Timex TC2068 ROMs (derived from Amstrad's, Timex's changes in the public domain), the +3e ROMs (derived from Amstrad's, the changes copyright Garry Lancaster) and the ZX Spectrum SE's OpenSE BASIC (GPL-2.0-or-later). Fuse's roms/README.copyright, carried in this package, says so for each file. The Pentagon's and the Scorpion's own ROMs are not in the package: the user supplies them. The package contains no game.",
   "components": [
     {
       "name": "chimera-core-fuse (integration)",
@@ -41,6 +41,14 @@
       "commit": "{submodule:extern/zlib}",
       "file": "extern/zlib/LICENSE",
       "sourceUrl": "https://github.com/madler/zlib/archive/{commit}.tar.gz"
+    },
+    {
+      "name": "The machines' ROMs (as Fuse is distributed with them): whose each is, and its terms",
+      "license": "Amstrad's permission to distribute (48K, 128, +2, +2A/+3, TC2048, and the TC2068 and +3e ROMs derived from them); GPL-2.0-or-later (ZX Spectrum SE)",
+      "url": "https://fuse-emulator.sourceforge.net/",
+      "commit": "{submodule:extern/fuse}",
+      "file": "extern/fuse/roms/README.copyright",
+      "sourceUrl": "https://sourceforge.net/p/fuse-emulator/fuse/ci/{commit}/tarball"
     }
   ]
 }

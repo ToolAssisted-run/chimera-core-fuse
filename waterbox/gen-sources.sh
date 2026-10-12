@@ -7,7 +7,7 @@
 #
 #   waterbox/gen-sources.sh <output directory>
 #
-# Needs: perl, flex, bison, and a C compiler for the host (CC, or cc).
+# Needs: perl, flex, bison, python3, and a C compiler for the host (CC, or cc).
 set -eu
 here="$(cd "$(dirname "$0")" && pwd)"
 root="$(cd "$here/.." && pwd)"
@@ -51,4 +51,7 @@ cfg="$here/config/fuse/config.h"
 	bison -y -d --no-lines -o "$out/fuse/debugger/commandy.c" ./debugger/commandy.y
 	flex -L -o "$out/fuse/debugger/commandl.c" ./debugger/commandl.l
 )
+# ---- the ROMs built into the core ----
+# the machines' ROMs Fuse is distributed with, as a C file (waterbox/gen-roms.py)
+python3 "$here/gen-roms.py" "$fuse/roms" "$out/chimera_roms_data.c"
 echo "generated: $out"

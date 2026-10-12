@@ -126,6 +126,8 @@ fuse_sources = files(
   gen / 'fuse/debugger/commandy.c', gen / 'fuse/debugger/commandl.c',
   # the core's own layers
   'waterbox/chimera_compat.c', 'waterbox/chimera_sound.c', 'waterbox/chimera_ui.c',
+  # the ROMs Fuse is distributed with, built in, and the way Fuse is given them
+  'waterbox/chimera_roms.c', gen / 'chimera_roms_data.c',
 )
 # Fuse's "null" interface, with the functions the core answers itself
 # compiled under other names (waterbox/chimera_ui.c has the real ones)

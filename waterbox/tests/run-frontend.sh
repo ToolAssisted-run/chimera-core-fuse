@@ -1,12 +1,12 @@
 #!/bin/bash
 # The window test: the package loaded by Chimera itself (Chimera.exe under
 # Mono, on a private Xvfb display, with nobody at it), not by its headless
-# runner. The machine is the ZX Spectrum SE, whose ROMs are free and come
-# with Fuse, loading the tape the tests make. Three things are asked:
+# runner. The machine is the ZX Spectrum SE, loading the tape the tests
+# make. Three things are asked:
 #  - the tape run for a number of frames with no button pressed leaves the
 #    machine's whole memory byte for byte what the native build leaves (so
-#    the firmware set in Chimera's configuration reached the machine, and
-#    the tape loaded);
+#    the machine started on the ROMs built into the core, and the tape
+#    loaded);
 #  - a setting made in Chimera's configuration reaches the machine: with the
 #    tape played as a real one the memory at that frame is another, and is
 #    what the native build has with that setting;
@@ -41,15 +41,13 @@ fuse="$root/extern/fuse"
 [ -f "$emu_exe" ] || { echo "Chimera's window is not built: $emu_exe" >&2; exit 1; }
 [ -f "$package" ] || { echo "the package is not installed: $package (run waterbox/build-package.sh -r <chimera>)" >&2; exit 1; }
 [ -x "$rn" ] || { echo "the native build is not there: $rn" >&2; exit 1; }
-[ -f "$fuse/roms/se-0.rom" ] || { echo "extern/fuse is not checked out" >&2; exit 1; }
 
 work="$(mktemp -d)"
-# the SE's two ROMs in a folder of their own, and the tape the tests load
-mkdir "$work/se-roms"
-cp "$fuse/roms/se-0.rom" "$fuse/roms/se-1.rom" "$work/se-roms/"
+# the tape the tests load; the SE's ROMs are built into the core, so no
+# firmware is set
 rom="$work/test.tap"
 python3 "$here/make-tape.py" "$rom" || exit 1
-firmware="{\"se-0.rom\": \"$work/se-roms/se-0.rom\", \"se-1.rom\": \"$work/se-roms/se-1.rom\"}"
+firmware="{}"
 xvfb_pid=""
 cleanup() { [ -n "$xvfb_pid" ] && kill "$xvfb_pid" 2>/dev/null; rm -rf "$work"; }
 trap cleanup EXIT
@@ -91,7 +89,7 @@ run_frontend() { # <tag> <configuration> <frames>
 }
 native_ram() { # <tag> <options...>
 	local tag="$1"; shift
-	"$rn" "$rom" "$work/native-dir.$tag" --roms "$work/se-roms" --set machine=se --frames "$frames" --dump-ram "$work/native.$tag.ram.bin" "$@" > "$work/native.$tag.txt" 2>&1
+	"$rn" "$rom" "$work/native-dir.$tag" --set machine=se --frames "$frames" --dump-ram "$work/native.$tag.ram.bin" "$@" > "$work/native.$tag.txt" 2>&1
 }
 settings_config() { python3 "$here/settings-config.py" "$config" "$1" "$2" "$firmware"; }
 
@@ -101,7 +99,7 @@ if ! native_ram base; then
 elif ! run_frontend base "$work/config.base.ini" "$frames"; then
 	report "window:memory" FAIL "Chimera did not finish the run: $(grep '^detail=' "$work/base.meta.txt" 2>/dev/null) $(tail -2 "$work/base.log" | tr '\n' ' ' | cut -c1-200)"
 elif cmp -s "$work/native.base.ram.bin" "$work/base.ram.bin"; then
-	report "window:memory" PASS "the tape loaded and run for $frames frames in Chimera's window, on the SE with its ROMs set as firmware: the machine's memory ($(wc -c < "$work/base.ram.bin") bytes) is the native build's"
+	report "window:memory" PASS "the tape loaded and run for $frames frames in Chimera's window, on the SE: the machine's memory ($(wc -c < "$work/base.ram.bin") bytes) is the native build's"
 else
 	report "window:memory" FAIL "the memory differs from the native build's"
 fi

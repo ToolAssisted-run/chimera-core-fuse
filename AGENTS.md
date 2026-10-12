@@ -29,6 +29,9 @@ design log, with what was decided, why, and what was measured.
 - `waterbox/chimera_ui.c`, `chimera_sound.c`, `chimera_compat.c` - the core's
   own display, sound card and platform layer under Fuse. `chimera_glue.h` is
   what they share with `cinterface.c`.
+- `waterbox/chimera_roms.c`, `gen-roms.py` - the ROMs built into the core,
+  and how Fuse is given them (through its replaceable table of file
+  functions). A built-in ROM wins over a file of the same name.
 - `waterbox/guest-syscalls.c` - answers, in the sandbox only, file questions
   the sandbox has no system call for.
 - `waterbox/run-native.c`, `waterbox/run-wbx.c` - the native runner and the
@@ -61,13 +64,12 @@ bash waterbox/tests/run-frontend.sh --chimera-root <chimera>
 The test script must end with `0 failed`. Run it before every commit that
 changes the core, and say in the commit what it printed.
 
-Most of the machines need ROM files this repository cannot contain
-(`FUSE_TEST_ROMS`, or `tests/roms-local/`), and one test needs a game
-(`FUSE_TEST_GAME`, or `tests/games-local/`). Without them the script runs
-everything it can on the ZX Spectrum SE, whose ROMs are free and come with
-Fuse, and says what it skipped. A skipped test proves nothing: a change to
-how a machine runs must be tested where the ROMs are. If you do not have
-them, say so in your report.
+Four machines (the Pentagons and the Scorpion) need ROM files this
+repository cannot contain (`FUSE_TEST_ROMS`, or `tests/roms-local/`), and one
+test needs a game (`FUSE_TEST_GAME`, or `tests/games-local/`). Without them
+the script runs everything on the twelve machines whose ROMs are built in,
+and says what it skipped or could not run. A skipped test proves nothing: if
+you do not have the ROMs or the game, say so in your report.
 
 ## Rules
 
@@ -84,9 +86,13 @@ them, say so in your report.
 - **The same input gives the same run, every time.** Nothing may read the
   host's clock or the user's home folder, or use the C library's `rand()`
   (the build sends Fuse's two uses of it to the core's own generator).
-- **No ROM and no game is committed, packaged or put on CI**, whoever allows
-  its distribution. The tests read the SE's free ROMs from the Fuse
-  submodule and nothing else from its `roms/` directory.
+- **No ROM and no game is committed.** The ROMs of twelve machines are built
+  into the core from the Fuse submodule's `roms/` directory when it is
+  built (`waterbox/gen-roms.py`; the owner's decision, 2026-10-12), and that
+  is the only way a ROM gets anywhere. The list in that script is the
+  machines' ROMs Fuse is distributed with; adding a file that Fuse does not
+  ship is the owner's to decide. The Pentagon's and Scorpion's ROMs stay
+  firmware the user supplies.
 - **A new test is broken on purpose once and seen to fail.** docs/PLAN.md
   says how each one was.
 - **Write in plain language.** Commit messages, documents and the
@@ -99,5 +105,5 @@ them, say so in your report.
 ## What is the owner's to decide
 
 Publishing a repository, a place in Chimera's list of official cores,
-anything a licence does not plainly allow (packaging a ROM, above all), and
+anything a licence does not plainly allow (packaging another ROM, above all), and
 reporting anything to Fuse's authors.

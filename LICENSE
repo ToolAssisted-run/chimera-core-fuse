@@ -39,17 +39,28 @@ pinned in extern/fuse and extern/libspectrum. zlib (extern/zlib) is under
 the zlib licence. Fuse contains Blip_Buffer and the SNES NTSC filter by Shay
 Green, under the GNU Lesser General Public License version 2.1 or later.
 
-The built package, fuse.chimeraCore, is therefore under the GNU General
-Public License version 2 or later. waterbox/package-licenses.json lists every
-component with its licence and where its source is, and the built package
-carries their licence texts.
+The program in the built package, fuse.chimeraCore, is therefore under the
+GNU General Public License version 2 or later. waterbox/package-licenses.json
+lists every component with its licence and where its source is, and the
+built package carries their licence texts.
 
-No ROM of any computer is in this repository or in the package. Fuse's own
-source tree has a roms/ directory with the Spectrum's ROMs, which Amstrad
-allows to be distributed with emulators, and others; this core does not
-package them. A user supplies the ROMs of the machine they choose. The tests
-read ROMs from a folder outside the repository, and on a machine with none
-they use only the two ROMs of the ZX Spectrum SE (OpenSE BASIC, GNU GPL
-version 2 or later), which they read from the pinned Fuse submodule.
+The ROMs. No ROM of any computer is in this repository. The built package
+does contain the ROMs of twelve machines, built into the core from the
+pinned Fuse submodule's roms/ directory when the core is built (decided by
+the project's owner, 2026-10-12): they are the ROMs Fuse itself is
+distributed with, and Fuse's roms/README.copyright, which the package
+carries, says whose each is.
+
+- The ZX Spectrum 48K, 128, +2, +2A/+3 and Timex TC2048 ROMs are copyright
+  Amstrad, who allow their distribution but retain the copyright: they may
+  not be sold on their own, though a product that contains them may be
+  sold. The Timex TC2068 ROMs and the +3e ROMs are derived from Amstrad's
+  code and the same holds for them; Timex's changes are in the public
+  domain, and the +3e's changes are copyright Garry Lancaster.
+- The ZX Spectrum SE's ROMs are OpenSE BASIC, under the GNU General Public
+  License version 2 or later.
+
+The Pentagon's and the Scorpion's own ROMs do not come with Fuse and are not
+in the package: a user supplies them.
 
 No game is in this repository or in the package.

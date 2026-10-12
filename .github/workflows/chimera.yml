@@ -2,21 +2,19 @@ name: chimera waterbox core
 
 # Builds the core from a fresh clone, tests it, and publishes the package.
 #
-# What is tested here is less than what is tested before a push. A Spectrum
-# needs its ROM, the Spectrum's ROMs are Amstrad's, and this repository has
-# none. One machine Fuse emulates, the ZX Spectrum SE, runs on free ROMs
-# (OpenSE BASIC, GNU GPL) that come with Fuse, and the tests make their own
-# tape. So here:
+# What is tested here is less than what is tested before a push, by a
+# little. The ROMs of twelve of the sixteen machines are built into the core
+# from the Fuse submodule, and the tests make their own tape, so here:
 #   - Fuse's own test of its Z80 passes;
-#   - on the SE the sandboxed core gives the native build's results, with
-#     savestates, a tape loaded fast and as a real tape, keys, joysticks and
-#     snapshots;
+#   - on those twelve machines the sandboxed core gives the native build's
+#     results, with savestates, a tape loaded fast and as a real tape, keys,
+#     joysticks and snapshots;
 #   - the package runs in Chimera's headless runner and in its window;
 #   - Chimera's own checks of the package pass.
-# Skipped here, and said so by the test script: the other fifteen machines,
-# Fuse's own unit tests (they need every machine's ROM) and the test that
-# plays a game. Those are run where the ROMs and the game are:
-# docs/BUILDING.md.
+# Skipped or not run here, and said so by the test script: the Pentagons and
+# the Scorpion (their ROMs do not come with Fuse), Fuse's own unit tests
+# (they switch through every machine) and the test that plays a game. Those
+# are run where the ROMs and the game are: docs/BUILDING.md.
 
 on:
   pull_request:
@@ -117,7 +115,8 @@ jobs:
         run: sh ./waterbox/build-package.sh -r "$GITHUB_WORKSPACE/chimera-checkout"
 
       - name: Run the test script
-        # The tests that need a ROM of Amstrad's or a game are skipped here.
+        # The tests that need a Pentagon or Scorpion ROM, or a game, are
+        # skipped here.
         # A run in which the ones that need neither did not pass has tested
         # nothing, so they are asked for by name.
         env:
@@ -128,7 +127,7 @@ jobs:
           cat gate.out
           [ "$rc" -eq 0 ]
           for t in upstream:z80 machines:sandbox state:every-frame tape:loading input:buttons \
-                   input:tape-and-reset state:other-process snapshot:load settings:refused \
+                   input:tape-and-reset state:other-process snapshot:load settings:refused roms:built-in \
                    frontend:picture frontend:states frontend:movie frontend:firmware; do
             grep -q "^$t  *PASS " gate.out || { echo "$t did not pass"; exit 1; }
           done

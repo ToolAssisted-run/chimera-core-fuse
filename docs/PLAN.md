@@ -48,15 +48,13 @@ changed. zlib 1.3.1 is a third submodule, for compressed snapshots.
 - **Where does the picture come from?** The machine's own screen, drawn by
   Fuse into whatever its "user interface" gives it.
 - **Does it recompile?** No. An interpreter.
-- **What must the user bring?** The ROMs of the machine. They are Amstrad's,
-  who allow them to be distributed with emulators, and Fuse's own source
-  tree has them. This core packages none: the ares core already asks the
-  user for the Spectrum's ROM, and the two should not differ. One machine,
-  the ZX Spectrum SE, runs on OpenSE BASIC, which is GPL.
-- **What can a test run on a public runner?** Fuse's own test of its Z80,
-  which needs no ROM; and, on the Spectrum SE with its free ROMs read from
-  the Fuse submodule, everything else, with a tape the tests make
-  themselves. Not: the other fifteen machines, Fuse's unit tests (they
+- **What must the user bring?** For twelve machines, a program and nothing
+  else: their ROMs are built into the core ("The ROMs are packaged", below).
+  For the Pentagons and the Scorpion, those machines' own ROMs, which do
+  not come with Fuse.
+- **What can a test run on a public runner?** Nearly everything, on the
+  twelve machines whose ROMs are built in, with a tape the tests make
+  themselves. Not: the Pentagons and the Scorpion, Fuse's unit tests (they
   switch through every machine), and a game.
 - **How big is it?** Small. The biggest machine has 1 MiB of memory.
 
@@ -147,13 +145,41 @@ type `FILE`; the sandbox's C library gives that type no size.
 
 ## Decisions
 
-- **The ROMs are the user's**, as in the ares core. Fuse's own tree has
-  them and Amstrad allows it, but what Chimera packages is the owner's to
-  say, and the rule so far is that a core packages no firmware.
-- **The tests use the Spectrum SE** where no ROM of Amstrad's is. Its ROMs
-  are GPL, and the tests copy just those two files out of the Fuse
-  submodule. Its BASIC loads an ordinary Spectrum tape, which is what makes
-  the tape tests possible on a CI runner.
+- **The ROMs are packaged** (user-decided, 2026-10-12: "package the ROMs").
+  The first version of the core packaged none and asked the user for every
+  machine's ROMs, as the ares core asks for its Spectrum's. Asked whether a
+  core may package the Spectrum's ROMs - Amstrad allows their distribution
+  with emulators, and Fuse ships them - the owner said yes. So:
+  - The 18 files of Fuse's `roms/` directory that are a machine's ROM are
+    built into the core, as data, when it is built
+    (`waterbox/gen-roms.py`): the 48K, 128, +2, +2A/+3, +3e, TC2048 and
+    TC2068 ROMs and the Spectrum SE's. They are read from the pinned
+    submodule; this repository still holds no ROM.
+  - Fuse reads every file through a small table of functions that can be
+    replaced (its own tests replace it). The core's table
+    (`waterbox/chimera_roms.c`) answers for those names from memory and
+    hands every other name on. No patch.
+  - A built-in ROM wins over a file of the same name. What a machine runs
+    on must not depend on what happens to be mounted beside it; the test
+    `roms:built-in` holds this, and with the order turned round by hand a
+    48K given a wrong `48.rom` did not start its tape.
+  - Not packaged: the Pentagon's and the Scorpion's own ROMs, which Fuse
+    does not ship and whose terms nobody here has read. They stay firmware
+    the user supplies: seven files. The Pentagon's second ROM is byte for
+    byte the Spectrum 128's second ROM (48 BASIC), so it is given from the
+    built-in one and is not asked for.
+  - The package's licence list says whose the ROMs are and carries Fuse's
+    `roms/README.copyright`. One thing to know: of the +3e ROMs that file
+    says only that they derive from Amstrad's and that the changes are
+    copyright Garry Lancaster. Fuse distributes them; nothing more is
+    written there.
+  - Not offered: choosing another ROM for a built-in machine (a Spanish
+    48K, a patched ROM). Fuse has a setting per ROM; the core does not pass
+    one.
+- **The tape tests' tape loads on the Spectrum SE** as on a real Spectrum:
+  its BASIC, OpenSE, loads an ordinary tape. Before the ROMs were packaged
+  that machine, whose ROMs are GPL, was what the tests ran on where no ROM
+  of Amstrad's was; it is still in every test.
 - **The tape starts and stops by itself** (Fuse's loader detection), with a
   setting to turn that off. The first test of the Stop button failed
   because of it: Stop stopped the tape and Fuse started it again a moment
@@ -168,10 +194,11 @@ type `FILE`; the sandbox's C library gives that type no size.
 
 ## What was measured (2026-10-12)
 
-`waterbox/run-gate.sh` with `CHIMERA_ROOT` set, all 26 ROMs and the game:
-15 tests, 15 passed, none skipped. With no ROMs of the user's and no game,
-as on a CI runner: 13 passed, 2 skipped (Fuse's unit tests and the game),
-and the tests that take a list of machines say which they could not run.
+`waterbox/run-gate.sh` with `CHIMERA_ROOT` set, the Pentagon's and the
+Scorpion's ROMs and the game: 16 tests, 16 passed, none skipped. With no
+ROMs of the user's and no game, as on a CI runner: 14 passed, 2 skipped
+(Fuse's unit tests and the game), twelve machines run, and the tests that
+take a list of machines say that the Pentagons and the Scorpion were not.
 
 - Fuse's own test of its Z80: 1355 cases, the expected output.
 - Fuse's own unit tests, natively on the core's build: none failed.
@@ -184,9 +211,8 @@ and the tests that take a list of machines say which they could not run.
   frames (the picture shows Willy in the Central Cavern): native, sandbox
   and savestate-every-frame runs print the same lines.
 - Chimera's package checks: 17 of 17.
-- The window test: 3 of 3 (the SE with its ROMs set as firmware in
-  Chimera's configuration, the tape's memory against the native build's, a
-  setting, and 47 keys adopted).
+- The window test: 3 of 3 (on the SE: the tape's memory against the native
+  build's, a setting, and 47 keys adopted).
 - Windows: `chimera-run.exe` gives the pictures Linux gives, file for file,
   for the tape played from a movie on the SE (also with a savestate around
   every frame) and for Manic Miner played from a movie.
@@ -220,6 +246,7 @@ into.
 ## What is not done
 
 - Discs with programs on them, on any machine.
+- Another ROM for a built-in machine (a translated or patched one).
 - Settings for what Fuse can plug in besides joysticks: the Kempston mouse,
   the Interface 1 and Microdrives, the disc interfaces for the Spectrum
   (+D, DISCiPLE, Opus, Beta 128, Didaktik), the hard-disc interfaces, the
@@ -237,8 +264,7 @@ into.
 - Whether to publish: a public repository
   `ToolAssisted-run/chimera-core-fuse`, the first CI run, a row in
   Chimera's list of official cores and README, the comment on issue 229.
-- Whether a core may package the Spectrum's ROMs, since Amstrad allows
-  their distribution with emulators and Fuse ships them. Today neither this
-  core nor ares does.
+- Whether the ares core's Spectrum should have its ROM built in as well,
+  now that this core's is: today ares still asks the user for it.
 - Whether to report to Fuse's authors: the unit tests do not compile with
   musl (patch 0002), and the joystick port's reading after a `.sna` load.

@@ -7,22 +7,22 @@
 #
 # CHIMERA_ROOT=<a Chimera checkout> adds the tests that run the package in
 # Chimera's own headless runner (see them below).
-# FUSE_TEST_ROMS=<folder> says where the machines' ROM files are (48.rom and
-# the rest, by Fuse's names). Without it, tests/roms-local is looked in.
+# FUSE_TEST_ROMS=<folder> says where the Pentagon's and the Scorpion's ROM
+# files are (by Fuse's names: 128p-0.rom, trdos.rom, gluck.rom, 256s-0.rom
+# to 256s-3.rom). Without it, tests/roms-local is looked in.
 # FUSE_TEST_GAME=<a tape> names the game for the one test that plays a game;
 # without it, tests/games-local/Manic Miner (Software Projects).tzx.
 #
 # Needs the native build (meson setup build/meson-native ... && ninja) and the
 # sandboxed core (waterbox/setup-guest.sh && ninja -C build/meson-guest).
 #
-# WHAT RUNS WITH NO ROMS OF YOURS. A Spectrum needs its ROM, and the
-# Spectrum's ROMs are Amstrad's: this repository has none. One machine Fuse
-# emulates, the ZX Spectrum SE, runs on OpenSE BASIC, which is free software
-# (GNU GPL) and comes with Fuse; the tests read its two ROMs from the pinned
-# Fuse submodule. So every test below runs on the SE everywhere, a CI runner
-# included, with a tape this script makes itself. The other fifteen machines
-# are tested where their ROMs are, and are named as skipped where they are
-# not.
+# WHAT RUNS WITH NO ROMS OF YOURS. The ROMs of twelve of the sixteen
+# machines are built into the core (the ones Fuse itself is distributed
+# with), so everything below runs on those everywhere, a CI runner included,
+# with a tape this script makes itself. The Pentagon's and the Scorpion's
+# ROMs are not, and those four machines are tested where their ROMs are, and
+# named as not run where they are not. So are Fuse's own unit tests, which
+# switch through every machine.
 set -u
 here="$(cd "$(dirname "$0")" && pwd)"
 root="$(cd "$here/.." && pwd)"
@@ -65,13 +65,9 @@ if [ ! -f "$fuse/roms/se-0.rom" ] || [ ! -f "$fuse/z80/tests/tests.in" ]; then
 	exit 2
 fi
 
-# The ROMs. The SE's two, from Fuse, in a folder of their own: the tests hand
-# a runner a folder, and must not hand it Fuse's whole roms/ directory.
-se_roms="$work/se-roms"
-mkdir "$se_roms"
-cp "$fuse/roms/se-0.rom" "$fuse/roms/se-1.rom" "$se_roms/"
+# The ROMs that are not built in: the user's folder.
 roms="${FUSE_TEST_ROMS:-$root/tests/roms-local}"
-have() { # <rom>...: whether the folder of ROMs has them all
+have() { # <rom>...: whether the folder of ROMs has them all (none asked for: yes)
 	for rom_file in "$@"; do [ -f "$roms/$rom_file" ] || return 1; done
 }
 # the tape every test loads: a BASIC program that starts by itself, paints
@@ -97,10 +93,10 @@ fi
 # timing, keyboard, sound filters, and opening every kind of file. They
 # switch through every machine, so they need every machine's ROM, and they
 # write scratch files, so they are run natively.
-every="48.rom 128-0.rom 128-1.rom plus2-0.rom plus2-1.rom plus3-0.rom plus3-1.rom plus3-2.rom plus3-3.rom plus3e-0.rom plus3e-1.rom plus3e-2.rom plus3e-3.rom tc2048.rom tc2068-0.rom tc2068-1.rom 128p-0.rom 128p-1.rom trdos.rom gluck.rom 256s-0.rom 256s-1.rom 256s-2.rom 256s-3.rom se-0.rom se-1.rom"
+every="128p-0.rom trdos.rom gluck.rom 256s-0.rom 256s-1.rom 256s-2.rom 256s-3.rom"
 # shellcheck disable=SC2086
 if ! have $every; then
-	report "upstream:unittests" SKIP "needs every machine's ROM in FUSE_TEST_ROMS or tests/roms-local (26 files; docs/BUILDING.md lists them)"
+	report "upstream:unittests" SKIP "needs the Pentagon's and the Scorpion's ROMs in FUSE_TEST_ROMS or tests/roms-local (7 files; docs/BUILDING.md lists them)"
 else
 	nat unit - --roms "$roms" --unittests --fixtures "$fuse/lib/tests"
 	if grep -q "^unittests failed=0$" "$work/unit.out" && grep -q "Final return value: 0" "$work/unit.err" "$work/unit.out"; then
@@ -110,30 +106,30 @@ else
 	fi
 fi
 
-# The machines: name | the "machine" setting | the ROMs it needs | frames a
-# second as the core must say them | the picture's size.
+# The machines: name | the "machine" setting | the ROMs it needs that are not
+# built in | frames a second as the core must say them | the picture's size.
 machines="
-se|se|se-0.rom se-1.rom|3500000/69888|640x480
-16|16|48.rom|3500000/69888|320x240
-48|48|48.rom|3500000/69888|320x240
-48_ntsc|48_ntsc|48.rom|3527500/59136|320x240
-128|128|128-0.rom 128-1.rom|3546900/70908|320x240
-plus2|plus2|plus2-0.rom plus2-1.rom|3546900/70908|320x240
-plus2a|plus2a|plus3-0.rom plus3-1.rom plus3-2.rom plus3-3.rom|3546900/70908|320x240
-plus3|plus3|plus3-0.rom plus3-1.rom plus3-2.rom plus3-3.rom|3546900/70908|320x240
-plus3e|plus3e|plus3e-0.rom plus3e-1.rom plus3e-2.rom plus3e-3.rom|3546900/70908|320x240
-2048|2048|tc2048.rom|3500000/69888|640x480
-2068|2068|tc2068-0.rom tc2068-1.rom|3500000/69888|640x480
-ts2068|ts2068|tc2068-0.rom tc2068-1.rom|3528000/58688|640x480
-pentagon|pentagon|128p-0.rom 128p-1.rom trdos.rom|3584000/71680|320x240
-pentagon512|pentagon512|128p-0.rom 128p-1.rom trdos.rom gluck.rom|3584000/71680|320x240
-pentagon1024|pentagon1024|128p-0.rom 128p-1.rom trdos.rom gluck.rom|3584000/71680|320x240
+se|se||3500000/69888|640x480
+16|16||3500000/69888|320x240
+48|48||3500000/69888|320x240
+48_ntsc|48_ntsc||3527500/59136|320x240
+128|128||3546900/70908|320x240
+plus2|plus2||3546900/70908|320x240
+plus2a|plus2a||3546900/70908|320x240
+plus3|plus3||3546900/70908|320x240
+plus3e|plus3e||3546900/70908|320x240
+2048|2048||3500000/69888|640x480
+2068|2068||3500000/69888|640x480
+ts2068|ts2068||3528000/58688|640x480
+pentagon|pentagon|128p-0.rom trdos.rom|3584000/71680|320x240
+pentagon512|pentagon512|128p-0.rom trdos.rom gluck.rom|3584000/71680|320x240
+pentagon1024|pentagon1024|128p-0.rom trdos.rom gluck.rom|3584000/71680|320x240
 scorpion|scorpion|256s-0.rom 256s-1.rom 256s-2.rom 256s-3.rom|3500000/69888|320x240
 "
 frames=600
 old_ifs="$IFS"
-# which folder a machine's ROMs come from: the SE's own, or the user's
-roms_for() { [ "$1" = se ] && echo "$se_roms" || echo "$roms"; }
+# the option that hands a machine the user's ROMs, for the four that need them
+needs_roms() { case "$1" in pentagon*|scorpion) return 0 ;; *) return 1 ;; esac; }
 
 # The sandboxed core is the native build: for every machine, switched on with
 # nothing in it and buttons pressed by a fixed pattern, the same line at every
@@ -145,13 +141,15 @@ for line in $(printf '%s\n' "$machines" | grep '|' | tr ' ' '^'); do
 	IFS='|'; set -- $(printf '%s' "$line" | tr '^' ' '); IFS="$old_ifs"
 	m_name="$1"; m_set="$2"; m_roms="$3"; m_fps="$4"; m_size="$5"
 	# shellcheck disable=SC2086
-	if [ "$m_name" != se ] && ! have $m_roms; then
+	if ! have $m_roms; then
 		missing="$missing $m_name"
 		continue
 	fi
-	from="$(roms_for "$m_name")"
-	nat "n-$m_name" - --roms "$from" --set "machine=$m_set" --frames "$frames" --every 60 --exercise
-	box "s-$m_name" - --roms "$from" --set "machine=$m_set" --frames "$frames" --every 60 --exercise
+	with=""; needs_roms "$m_name" && with="--roms $roms"
+	# shellcheck disable=SC2086
+	nat "n-$m_name" - $with --set "machine=$m_set" --frames "$frames" --every 60 --exercise
+	# shellcheck disable=SC2086
+	box "s-$m_name" - $with --set "machine=$m_set" --frames "$frames" --every 60 --exercise
 	ran="$ran $m_name"
 	if ! [ -s "$work/n-$m_name.out" ] || ! cmp -s "$work/n-$m_name.out" "$work/s-$m_name.out"; then
 		bad="$bad $m_name(native and sandbox differ: $(last "$work/s-$m_name.out" | cut -c1-70) $(tail -1 "$work/s-$m_name.err" | cut -c1-90))"
@@ -176,8 +174,9 @@ fi
 # is the run that was never stopped. For every machine that ran above.
 bad=""
 for m_name in $ran; do
-	from="$(roms_for "$m_name")"
-	box "r-$m_name" - --roms "$from" --set "machine=$m_name" --frames "$frames" --every 60 --exercise --rerecord
+	with=""; needs_roms "$m_name" && with="--roms $roms"
+	# shellcheck disable=SC2086
+	box "r-$m_name" - $with --set "machine=$m_name" --frames "$frames" --every 60 --exercise --rerecord
 	cmp -s "$work/s-$m_name.out" "$work/r-$m_name.out" || bad="$bad $m_name($(last "$work/r-$m_name.out" | cut -c1-70) $(tail -1 "$work/r-$m_name.err" | cut -c1-90))"
 done
 if [ -z "$bad" ]; then
@@ -191,16 +190,14 @@ fi
 # is about fifteen seconds. Both must end with the same program running and
 # the same screen - and it is not the screen of a machine with no tape. The
 # sandbox must do what the native build does, at every sixtieth frame of
-# both. On the SE, and on the 48K and 128K Spectrums where their ROMs are.
+# both. On the SE, the 48K and the 128K.
 bad=""; taped=""
 for m_name in se 48 128; do
-	echo " $ran " | grep -q " $m_name " || continue
-	from="$(roms_for "$m_name")"
-	nat "tf-$m_name" "$tape" --roms "$from" --set "machine=$m_name" --frames 1500 --every 60
-	box "tfs-$m_name" "$tape" --roms "$from" --set "machine=$m_name" --frames 1500 --every 60
-	nat "tr-$m_name" "$tape" --roms "$from" --set "machine=$m_name" --set tape_loading=real --frames 1500 --every 60
-	box "trs-$m_name" "$tape" --roms "$from" --set "machine=$m_name" --set tape_loading=real --frames 1500 --every 60
-	box "tn-$m_name" - --roms "$from" --set "machine=$m_name" --frames 1500
+	nat "tf-$m_name" "$tape" --set "machine=$m_name" --frames 1500 --every 60
+	box "tfs-$m_name" "$tape" --set "machine=$m_name" --frames 1500 --every 60
+	nat "tr-$m_name" "$tape" --set "machine=$m_name" --set tape_loading=real --frames 1500 --every 60
+	box "trs-$m_name" "$tape" --set "machine=$m_name" --set tape_loading=real --frames 1500 --every 60
+	box "tn-$m_name" - --set "machine=$m_name" --frames 1500
 	taped="$taped $m_name"
 	fast_at="$(grep -n "videoHash=$(field "$work/tfs-$m_name.out" videoHash) " "$work/tfs-$m_name.out" | head -1 | cut -d: -f1)"
 	real_at="$(grep -n "videoHash=$(field "$work/tfs-$m_name.out" videoHash) " "$work/trs-$m_name.out" | head -1 | cut -d: -f1)"
@@ -230,7 +227,7 @@ fi
 # counter is made of.
 se_run() { # <name> <options...>
 	se_name="$1"; shift
-	box "$se_name" "$tape" --roms "$se_roms" --set machine=se --frames 500 "$@"
+	box "$se_name" "$tape" --set machine=se --frames 500 "$@"
 }
 se_run in-none
 se_run in-key --press "300:40:$key_q"
@@ -239,8 +236,8 @@ se_run in-sinc --set joystick_1=sinclair1 --press "300:40:$joy_fire"
 se_run in-zero --set joystick_1=sinclair1 --press "300:40:$key_0"
 se_run in-nojoy --set joystick_1=none --press "300:40:$joy_fire"
 se_run in-nojoy-none --set joystick_1=none
-nat in-key-n "$tape" --roms "$se_roms" --set machine=se --frames 500 --press "300:40:$key_q"
-nat in-kemp-n "$tape" --roms "$se_roms" --set machine=se --frames 500 --press "300:40:$joy_fire"
+nat in-key-n "$tape" --set machine=se --frames 500 --press "300:40:$key_q"
+nat in-kemp-n "$tape" --set machine=se --frames 500 --press "300:40:$joy_fire"
 vh() { field "$work/$1.out" videoHash; }
 asked="$(field "$work/in-none.out" inputFrames)"
 why=""
@@ -269,7 +266,7 @@ se_run tp-play --set tape_loading=real --set tape_auto=false --frames 1700 --pre
 se_run tp-stop --set tape_loading=real --set tape_auto=false --frames 1700 --press 300:5:10000000000 --press 500:5:20000000000
 se_run tp-reset --frames 900 --press 400:5:40000000000
 se_run tp-plain --frames 1500
-box tp-boot - --roms "$se_roms" --set machine=se --frames 500
+box tp-boot - --set machine=se --frames 500
 why=""
 [ "$(vh tp-never)" != "$(vh tp-plain)" ] || why="$why the tape loaded with nobody pressing Play;"
 [ "$(vh tp-play)" = "$(vh tp-plain)" ] || why="$why Play did not load the tape;"
@@ -283,9 +280,9 @@ fi
 
 # Saved by one process half way and loaded by another, a run ends where the
 # unbroken run ends: the tape's program, with a key held across the save.
-box so-whole "$tape" --roms "$se_roms" --set machine=se --frames 600 --every 60 --press "280:60:$key_q"
-box so-half "$tape" --roms "$se_roms" --set machine=se --frames 600 --every 60 --press "280:60:$key_q" --save-state "$work/se.state" --at 300
-box so-rest "$tape" --roms "$se_roms" --set machine=se --frames 600 --every 60 --press "280:60:$key_q" --state "$work/se.state"
+box so-whole "$tape" --set machine=se --frames 600 --every 60 --press "280:60:$key_q"
+box so-half "$tape" --set machine=se --frames 600 --every 60 --press "280:60:$key_q" --save-state "$work/se.state" --at 300
+box so-rest "$tape" --set machine=se --frames 600 --every 60 --press "280:60:$key_q" --state "$work/se.state"
 if [ -s "$work/se.state" ] && [ -n "$(tail -1 "$work/so-whole.out")" ] && [ "$(tail -1 "$work/so-rest.out")" = "$(tail -1 "$work/so-whole.out")" ]; then
 	report "state:other-process" PASS "saved after frame 300 with a key held and loaded by another process, the run ends where the unbroken run ends ($(wc -c < "$work/se.state") bytes)"
 else
@@ -296,15 +293,15 @@ fi
 # the tape's program has run (natively: a core writes no files), and a
 # machine started from that file shows that program's screen from its first
 # frames, natively and in the sandbox alike. On the SE in Fuse's own format
-# (.szx), the only one that can describe that machine; and where 48.rom is,
-# on a 48K Spectrum in the two old formats most snapshots are in (.z80 and
-# .sna) - there with the settings asking for a 128K machine, because a
-# snapshot says which machine it is of and that must win.
+# (.szx), the only one that can describe that machine; and on a 48K
+# Spectrum in the two old formats most snapshots are in (.z80 and .sna) -
+# there with the settings asking for a 128K machine, because a snapshot says
+# which machine it is of and that must win.
 bad=""; snapped=""
-snap_test() { # <format> <machine> <folder of ROMs> <machine the settings ask for when loading>
-	nat "sw-$1" "$tape" --roms "$3" --set "machine=$2" --frames 400 --write-snapshot "$work/made.$1"
-	nat "sl-$1" "$work/made.$1" --roms "$3" --set "machine=$4" --frames 50 --every 10
-	box "sls-$1" "$work/made.$1" --roms "$3" --set "machine=$4" --frames 50 --every 10
+snap_test() { # <format> <machine> <machine the settings ask for when loading>
+	nat "sw-$1" "$tape" --set "machine=$2" --frames 400 --write-snapshot "$work/made.$1"
+	nat "sl-$1" "$work/made.$1" --set "machine=$3" --frames 50 --every 10
+	box "sls-$1" "$work/made.$1" --set "machine=$3" --frames 50 --every 10
 	snapped="$snapped .$1"
 	[ -s "$work/made.$1" ] || { bad="$bad $1(no snapshot was written: $(tail -1 "$work/sw-$1.err" | cut -c1-80))"; return; }
 	cmp -s "$work/sl-$1.out" "$work/sls-$1.out" || bad="$bad $1(native and sandbox differ)"
@@ -320,34 +317,48 @@ snap_test() { # <format> <machine> <folder of ROMs> <machine the settings ask fo
 		[ "$(vh "sls-$1")" = "$(vh "sw-$1")" ] || bad="$bad $1(the snapshot's screen is not the screen it was taken of)"
 	fi
 }
-snap_test szx se "$se_roms" se
-if have 48.rom 128-0.rom 128-1.rom; then
-	snap_test z80 48 "$roms" 128
-	snap_test sna 48 "$roms" 128
-	old_formats=""
-else
-	old_formats="; .z80 and .sna NOT RUN for want of 48.rom, 128-0.rom and 128-1.rom"
-fi
+snap_test szx se se
+snap_test z80 48 128
+snap_test sna 48 128
 if [ -z "$bad" ]; then
-	report "snapshot:load" PASS "a snapshot that Fuse wrote of the running program ($snapped ) starts as the machine it was taken on, with that program's screen, the same natively and in the sandbox$old_formats"
+	report "snapshot:load" PASS "a snapshot that Fuse wrote of the running program ($snapped ) starts as the machine it was taken on, with that program's screen, the same natively and in the sandbox"
 else
 	report "snapshot:load" FAIL "$bad"
 fi
 
 # What cannot be run is refused with a reason: a machine that does not
-# exist, a machine whose ROM is not there, a file that is nothing Fuse knows.
-box x-machine - --roms "$se_roms" --set machine=zx81 --frames 5
-box x-norom - --roms "$se_roms" --set machine=48 --frames 5
+# exist, a machine whose ROM is not built in and was not handed over, a file
+# that is nothing Fuse knows.
+box x-machine - --set machine=zx81 --frames 5
+box x-norom - --set machine=pentagon --frames 5
 printf 'this is not a tape' > "$work/nothing.tap"
-box x-file "$work/nothing.tap" --roms "$se_roms" --set machine=se --frames 5
+box x-file "$work/nothing.tap" --set machine=se --frames 5
 why=""
 grep -q "no such machine: zx81" "$work/x-machine.err" || why="$why an unknown machine is not refused [$(tail -1 "$work/x-machine.err" | cut -c1-60)];"
-grep -q "couldn't find ROM '48.rom'" "$work/x-norom.err" || why="$why a missing ROM is not named [$(tail -1 "$work/x-norom.err" | cut -c1-60)];"
+grep -q "couldn't find ROM '128p-0.rom'" "$work/x-norom.err" || why="$why a missing ROM is not named [$(tail -1 "$work/x-norom.err" | cut -c1-60)];"
 grep -q "^Init: " "$work/x-file.err" || why="$why a file that is no tape is not refused [$(tail -1 "$work/x-file.out" | cut -c1-60)];"
 if [ -z "$why" ]; then
 	report "settings:refused" PASS "an unknown machine, a machine whose ROM is missing (the ROM is named) and a file that is nothing Fuse knows are each refused with a reason: $(sed -n 's/^Init: //p' "$work/x-file.err" | head -1 | cut -c1-70)"
 else
 	report "settings:refused" FAIL "$why"
+fi
+
+# The ROMs that are built in are Fuse's files, and nothing replaces them: a
+# 48K machine and an SE run the same with a file called 48.rom (or se-0.rom)
+# lying beside them that is something else. What a machine runs on must not
+# depend on what happens to be mounted.
+mkdir "$work/odd-roms"
+head -c 16384 /dev/zero | tr '\0' '\377' > "$work/odd-roms/48.rom"
+cp "$work/odd-roms/48.rom" "$work/odd-roms/se-0.rom"
+box b-48 "$tape" --set machine=48 --frames 400 --every 100
+box b-48odd "$tape" --roms "$work/odd-roms" --set machine=48 --frames 400 --every 100
+box b-se "$tape" --set machine=se --frames 400 --every 100
+box b-seodd "$tape" --roms "$work/odd-roms" --set machine=se --frames 400 --every 100
+built="$(for f in 48.rom 128-0.rom 128-1.rom plus2-0.rom plus2-1.rom plus3-0.rom plus3-1.rom plus3-2.rom plus3-3.rom plus3e-0.rom plus3e-1.rom plus3e-2.rom plus3e-3.rom tc2048.rom tc2068-0.rom tc2068-1.rom se-0.rom se-1.rom; do [ -f "$fuse/roms/$f" ] && echo "$f"; done | wc -l)"
+if grep -q "^end frame=400 " "$work/b-48.out" && cmp -s "$work/b-48.out" "$work/b-48odd.out" && grep -q "^end frame=400 " "$work/b-se.out" && cmp -s "$work/b-se.out" "$work/b-seodd.out" && [ "$built" = 18 ]; then
+	report "roms:built-in" PASS "the $built ROM files of twelve machines are built into the core from Fuse's own, and a file of the same name lying beside the machine does not replace one"
+else
+	report "roms:built-in" FAIL "48K [$(last "$work/b-48.out" | cut -c1-50)] with another 48.rom beside it [$(last "$work/b-48odd.out" | cut -c1-50)]; $built of 18 files in Fuse's roms/"
 fi
 
 # A game, where there is one: this repository has none and may have none.
@@ -359,18 +370,16 @@ fi
 game="${FUSE_TEST_GAME:-$root/tests/games-local/Manic Miner (Software Projects).tzx}"
 if [ ! -f "$game" ]; then
 	report "game:manic-miner" SKIP "needs the game's tape: FUSE_TEST_GAME=<Manic Miner .tzx>, or tests/games-local/Manic Miner (Software Projects).tzx"
-elif ! have 48.rom; then
-	report "game:manic-miner" SKIP "needs 48.rom in FUSE_TEST_ROMS or tests/roms-local"
 else
 	# ENTER at frame 1600; then right (P), a jump (SPACE), left (O), right
 	play="--press 1600:10:20000000 --press 1700:120:80000 --press 1760:10:8000000000 --press 1900:60:40000 --press 2000:150:80000 --press 2060:10:8000000000"
 	# shellcheck disable=SC2086
-	nat g-n "$game" --roms "$roms" --frames 2400 --every 100 $play
+	nat g-n "$game" --frames 2400 --every 100 $play
 	# shellcheck disable=SC2086
-	box g-s "$game" --roms "$roms" --frames 2400 --every 100 $play
+	box g-s "$game" --frames 2400 --every 100 $play
 	# shellcheck disable=SC2086
-	box g-r "$game" --roms "$roms" --frames 2400 --every 100 $play --rerecord
-	box g-idle "$game" --roms "$roms" --frames 2400 --every 100
+	box g-r "$game" --frames 2400 --every 100 $play --rerecord
+	box g-idle "$game" --frames 2400 --every 100
 	if [ -s "$work/g-n.out" ] && cmp -s "$work/g-n.out" "$work/g-s.out" && cmp -s "$work/g-s.out" "$work/g-r.out" && ! cmp -s "$work/g-s.out" "$work/g-idle.out"; then
 		report "game:manic-miner" PASS "Manic Miner loaded from its tape and played for 800 frames: the sandbox prints the native build's lines, a state before every frame changes nothing, and it is not the run with no keys: $(last "$work/g-s.out" | cut -c1-90)"
 	else
@@ -387,7 +396,9 @@ fi
 #    shows the same picture;
 #  - a movie's row has the columns the package declares, and the movie
 #    recorded is the movie that was played;
-#  - with a ROM not handed over the package refuses to start and names it.
+#  - a machine whose ROMs are not built in (the Pentagon) refuses to start
+#    with no firmware and names the ROM; and with its firmware handed over,
+#    where the user's ROMs are, it starts.
 chimera_root="${CHIMERA_ROOT:-}"
 engine="$chimera_root/build/meson-linux/chimera-run"
 package="$chimera_root/build/Cores/fuse.chimeraCore"
@@ -402,16 +413,15 @@ else
 	fe_frames=500
 	shot=480
 	se_set='{"machine":"se"}'
-	fw="--firmware se-0.rom=$se_roms/se-0.rom --firmware se-1.rom=$se_roms/se-1.rom"
 	python3 "$here/tests/make-movie.py" "$fe_frames" > "$work/keys.movie"
 	# shellcheck disable=SC2086
-	env -u DISPLAY "$engine" "$package" "$tape" "$work/keys.movie" --record "$work/fe.movie" --settings "$se_set" $fw --screenshot "$shot=$work/fe-a.tga" > "$work/fe-record.out" 2>&1
+	env -u DISPLAY "$engine" "$package" "$tape" "$work/keys.movie" --record "$work/fe.movie" --settings "$se_set" --screenshot "$shot=$work/fe-a.tga" > "$work/fe-record.out" 2>&1
 	# shellcheck disable=SC2086
-	env -u DISPLAY "$engine" "$package" "$tape" "$work/fe.movie" --settings "$se_set" $fw --screenshot "$shot=$work/fe.tga" > "$work/fe-play.out" 2>&1
+	env -u DISPLAY "$engine" "$package" "$tape" "$work/fe.movie" --settings "$se_set" --screenshot "$shot=$work/fe.tga" > "$work/fe-play.out" 2>&1
 	played=$?
 	# the engine counts frames from 0, the runner from 1; the same keys
 	# shellcheck disable=SC2046
-	box fe "$tape" --roms "$se_roms" --set machine=se --frames $((shot + 1)) --ppm "$work/fe.ppm" $(python3 "$here/tests/make-movie.py" "$fe_frames" --as-presses)
+	box fe "$tape" --set machine=se --frames $((shot + 1)) --ppm "$work/fe.ppm" $(python3 "$here/tests/make-movie.py" "$fe_frames" --as-presses)
 	verdict="$(python3 "$same" "$work/fe.tga" "$work/fe.ppm" 2>&1)"; same_rc=$?
 	if [ "$played" = 0 ] && grep -q "^frames=$fe_frames" "$work/fe-play.out" && [ "$same_rc" = 0 ] && cmp -s "$work/fe-a.tga" "$work/fe.tga"; then
 		report "frontend:picture" PASS "a movie of $fe_frames frames with keys and a joystick, recorded in chimera-run and played back by another process: its picture at frame $shot is this repository's runner's ($verdict)"
@@ -419,7 +429,7 @@ else
 		report "frontend:picture" FAIL "chimera-run exit $played; pictures: $verdict; $(tail -1 "$work/fe-play.out")"
 	fi
 	# shellcheck disable=SC2086
-	env -u DISPLAY "$engine" "$package" "$tape" "$work/fe.movie" --settings "$se_set" $fw --rerecord --screenshot "$shot=$work/fe-states.tga" > "$work/fe-states.out" 2>&1
+	env -u DISPLAY "$engine" "$package" "$tape" "$work/fe.movie" --settings "$se_set" --rerecord --screenshot "$shot=$work/fe-states.tga" > "$work/fe-states.out" 2>&1
 	stated=$?
 	verdict="$(python3 "$same" "$work/fe-states.tga" "$work/fe.ppm" 2>&1)"; same_rc=$?
 	if [ "$stated" = 0 ] && [ "$same_rc" = 0 ]; then
@@ -434,12 +444,23 @@ else
 	else
 		report "frontend:movie" FAIL "a row is [$row] (${#row} characters); $held rows with a button; recorded $(wc -l < "$work/fe.movie") rows of $(wc -l < "$work/keys.movie")"
 	fi
-	env -u DISPLAY "$engine" "$package" "$tape" "$work/keys.movie" --settings "$se_set" --firmware "se-0.rom=$se_roms/se-0.rom" > "$work/fe-nofw.out" 2>&1
+	pent_set='{"machine":"pentagon"}'
+	: > "$work/empty.movie"
+	env -u DISPLAY "$engine" "$package" "$tape" "$work/empty.movie" --frames 60 --record "$work/pn.movie" --settings "$pent_set" > "$work/fe-nofw.out" 2>&1
 	refused=$?
-	if [ "$refused" != 0 ] && grep -q "se-1.rom" "$work/fe-nofw.out"; then
-		report "frontend:firmware" PASS "with one of the machine's two ROMs not handed over the package does not start, and the missing ROM is named (exit $refused)"
+	if have 128p-0.rom trdos.rom; then
+		env -u DISPLAY "$engine" "$package" "$tape" "$work/empty.movie" --frames 60 --record "$work/pf.movie" --settings "$pent_set" --firmware "128p-0.rom=$roms/128p-0.rom" --firmware "trdos.rom=$roms/trdos.rom" > "$work/fe-fw.out" 2>&1
+		started=$?
+		with_fw="with its two ROMs handed over as firmware it runs its 60 frames"
+		grep -q "^frames=60" "$work/fe-fw.out" || started=1
 	else
-		report "frontend:firmware" FAIL "exit $refused: $(tail -1 "$work/fe-nofw.out" | cut -c1-120)"
+		started=0
+		with_fw="with its ROMs handed over: NOT RUN for want of 128p-0.rom and trdos.rom"
+	fi
+	if [ "$refused" != 0 ] && grep -q "128p-0.rom" "$work/fe-nofw.out" && [ "$started" = 0 ]; then
+		report "frontend:firmware" PASS "the Pentagon, whose ROMs are not built in, does not start with no firmware and the missing ROM is named (exit $refused); $with_fw"
+	else
+		report "frontend:firmware" FAIL "no firmware: exit $refused [$(tail -1 "$work/fe-nofw.out" | cut -c1-90)]; with firmware: exit $started [$(tail -1 "$work/fe-fw.out" 2> /dev/null | cut -c1-90)]"
 	fi
 fi
 

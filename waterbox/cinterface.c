@@ -35,6 +35,7 @@
 #include "z80/z80.h"
 
 #include "chimera_glue.h"
+#include "chimera_roms.h"
 
 int fuse_chimera_init(int argc, char **argv);
 
@@ -208,6 +209,9 @@ ECL_EXPORT int Init(void)
 	argv[argc++] = (char *)"--no-autosave-settings";
 	if (file[0]) argv[argc++] = file;
 	argv[argc] = NULL;
+
+	/* the machines' ROMs that are built in, before Fuse looks for any */
+	chimera_roms_install();
 
 	chimera_last_error[0] = '\0';
 	if (fuse_chimera_init(argc, argv)) {
