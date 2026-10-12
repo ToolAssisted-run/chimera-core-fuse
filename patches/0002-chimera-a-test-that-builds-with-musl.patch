@@ -1,0 +1,20 @@
+diff --git a/unittests/unittests.c b/unittests/unittests.c
+index 58a4a2b8..480675e9 100644
+--- a/unittests/unittests.c
++++ b/unittests/unittests.c
+@@ -2052,7 +2052,15 @@ utils_open_loaded_disk_merge_test( void )
+   return r;
+ }
+ 
++#ifdef CHIMERA_CORE
++/* chimera: FILE is a type with no size in the sandbox's C library (musl),
++   so no object of it can be declared. The test only needs an address to
++   hand around; it never looks at what is there. */
++static char compat_file_test_storage[ 16 ];
++#define compat_file_test_file ( *(FILE*)compat_file_test_storage )
++#else
+ static FILE compat_file_test_file;
++#endif
+ static int compat_file_test_calls[ 6 ];
+ 
+ static compat_fd compat_file_test_open( const char *path GCC_UNUSED,

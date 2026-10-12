@@ -1,0 +1,9 @@
+[submodule "extern/fuse"]
+	path = extern/fuse
+	url = https://git.code.sf.net/p/fuse-emulator/fuse
+[submodule "extern/libspectrum"]
+	path = extern/libspectrum
+	url = https://git.code.sf.net/p/fuse-emulator/libspectrum
+[submodule "extern/zlib"]
+	path = extern/zlib
+	url = https://github.com/madler/zlib

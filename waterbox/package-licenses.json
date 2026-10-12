@@ -1,0 +1,46 @@
+{
+  "package": "fuse",
+  "effectiveTerms": "GPL-2.0-or-later",
+  "commercialUse": "allowed under the GPL",
+  "note": "The core is Fuse, the Free Unix Spectrum Emulator (GPL-2.0-or-later), with libspectrum (GPL-2.0-or-later) and zlib (Zlib licence), built with this repository's patches (GPL-2.0-or-later) and integration (MIT). The built core is distributed under the GPL version 2 or later. Inside Fuse are Blip_Buffer by Shay Green (LGPL-2.1-or-later), the SNES NTSC filter by Shay Green (LGPL-2.1-or-later) and scalers from ScummVM (GPL-2.0-or-later). The package contains no ROM of any computer: the machines' ROMs are firmware the user supplies. It contains no game.",
+  "components": [
+    {
+      "name": "chimera-core-fuse (integration)",
+      "license": "MIT, and GPL-2.0-or-later for patches/",
+      "url": "https://github.com/ToolAssisted-run/chimera-core-fuse",
+      "commit": "{selfCommit}",
+      "file": "LICENSE",
+      "sourceUrl": "https://github.com/ToolAssisted-run/chimera-core-fuse/archive/{commit}.tar.gz"
+    },
+    {
+      "name": "Fuse",
+      "license": "GPL-2.0-or-later",
+      "url": "https://fuse-emulator.sourceforge.net/",
+      "commit": "{submodule:extern/fuse}",
+      "file": "extern/fuse/COPYING",
+      "sourceUrl": "https://sourceforge.net/p/fuse-emulator/fuse/ci/{commit}/tarball"
+    },
+    {
+      "name": "Fuse's authors",
+      "license": "GPL-2.0-or-later",
+      "url": "https://fuse-emulator.sourceforge.net/",
+      "file": "extern/fuse/AUTHORS"
+    },
+    {
+      "name": "libspectrum",
+      "license": "GPL-2.0-or-later",
+      "url": "https://fuse-emulator.sourceforge.net/libspectrum.php",
+      "commit": "{submodule:extern/libspectrum}",
+      "file": "extern/libspectrum/COPYING",
+      "sourceUrl": "https://sourceforge.net/p/fuse-emulator/libspectrum/ci/{commit}/tarball"
+    },
+    {
+      "name": "zlib",
+      "license": "Zlib",
+      "url": "https://zlib.net/",
+      "commit": "{submodule:extern/zlib}",
+      "file": "extern/zlib/LICENSE",
+      "sourceUrl": "https://github.com/madler/zlib/archive/{commit}.tar.gz"
+    }
+  ]
+}

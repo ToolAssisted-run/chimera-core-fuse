@@ -1,0 +1,55 @@
+MIT License
+
+Copyright (c) 2026 Sergio Martin and the Chimera contributors
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+-------------------------------------------------------------------------------
+
+What this licence covers, and what it does not
+
+The text above covers this repository's own files: the adapter, the core's
+own display, sound and platform layers and the test runners under waterbox/,
+the build files, and the documents.
+
+The patches under patches/ are changes to Fuse and are under Fuse's terms,
+the GNU General Public License version 2 or later.
+
+It does not cover what the repository builds from. The emulator is Fuse, the
+Free Unix Spectrum Emulator, by Philip Kendall and others
+(https://fuse-emulator.sourceforge.net/), with its library libspectrum, both
+under the GNU General Public License version 2 or later, at the commits
+pinned in extern/fuse and extern/libspectrum. zlib (extern/zlib) is under
+the zlib licence. Fuse contains Blip_Buffer and the SNES NTSC filter by Shay
+Green, under the GNU Lesser General Public License version 2.1 or later.
+
+The built package, fuse.chimeraCore, is therefore under the GNU General
+Public License version 2 or later. waterbox/package-licenses.json lists every
+component with its licence and where its source is, and the built package
+carries their licence texts.
+
+No ROM of any computer is in this repository or in the package. Fuse's own
+source tree has a roms/ directory with the Spectrum's ROMs, which Amstrad
+allows to be distributed with emulators, and others; this core does not
+package them. A user supplies the ROMs of the machine they choose. The tests
+read ROMs from a folder outside the repository, and on a machine with none
+they use only the two ROMs of the ZX Spectrum SE (OpenSE BASIC, GNU GPL
+version 2 or later), which they read from the pinned Fuse submodule.
+
+No game is in this repository or in the package.

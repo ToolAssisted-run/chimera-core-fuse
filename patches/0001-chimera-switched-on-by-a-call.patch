@@ -1,0 +1,35 @@
+diff --git a/fuse.c b/fuse.c
+index 95217862..45c80217 100644
+--- a/fuse.c
++++ b/fuse.c
+@@ -174,7 +174,17 @@ static void free_start_files( start_files_t *start_files );
+ 
+ static int fuse_end(void);
+ 
+-#ifdef UI_WIN32
++#ifdef CHIMERA_CORE
++/* chimera: a core has no main of its own. It is switched on by one call,
++   with the settings as the command line Fuse already understands, and then
++   run a frame at a time by the caller (waterbox/cinterface.c). */
++int fuse_chimera_init(int argc, char **argv)
++{
++  return fuse_init(argc, argv);
++}
++
++static int fuse_chimera_unused_main(int argc, char **argv)
++#elif defined UI_WIN32
+ int fuse_main(int argc, char **argv)
+ #else
+ int main(int argc, char **argv)
+@@ -392,7 +402,11 @@ static int fuse_init(int argc, char **argv)
+ 
+   start_scaler = utils_safe_strdup( settings_current.start_scaler_mode );
+ 
++#ifndef CHIMERA_CORE
++  /* chimera: the notice is for a person at a terminal; a core's standard
++     output is its log */
+   fuse_show_copyright();
++#endif
+ 
+   if( run_startup_manager( &argc, &argv ) ) return 1;
+ 
