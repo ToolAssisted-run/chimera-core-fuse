@@ -83,15 +83,32 @@ run_frontend() { # <tag> <configuration> <frames>
 		echo "meta=$work/$tag.meta.txt"
 		echo "shot="
 	} > "$job"
+	local project
+	project="$(game_project "$tag" "$cfg" "$package" "$rom")" || { echo "no project made (see tests/work/project.$tag/make.log)" > "$work/$tag.log"; return 1; }
 	( cd "$chimera_root" && MINIHAWK_JOB="$job" timeout 900 mono "$emu_exe" --headless \
-		"--config=$cfg" "--core=$package" "--lua=$here/frontend-ram.lua" "$rom" ) > "$work/$tag.log" 2>&1
+		"--config=$cfg" "--core=$package" "--lua=$here/frontend-ram.lua" "--project=$project" ) > "$work/$tag.log" 2>&1
 	[ -f "$work/$tag.meta.txt" ] && grep -q "^status=OK" "$work/$tag.meta.txt"
 }
 native_ram() { # <tag> <options...>
 	local tag="$1"; shift
 	"$rn" "$rom" "$work/native-dir.$tag" --set machine=se --frames "$frames" --dump-ram "$work/native.$tag.ram.bin" "$@" > "$work/native.$tag.txt" 2>&1
 }
-settings_config() { python3 "$here/settings-config.py" "$config" "$1" "$2" "$firmware"; }
+# A game runs only in a project (Chimera, 2026-10-26): each run opens one made
+# of its game with chimera-run --new-project, holding the settings (and the firmware)
+# settings_config was given for the config it runs with.
+declare -A settings_of firmware_of
+settings_config() { python3 "$here/settings-config.py" "$config" "$1" "$2" "$firmware"; settings_of["$1"]="$2"; firmware_of["$1"]="$firmware"; }
+crun="$chimera_root/build/dll/chimera-run"
+game_project() { # tag, config, package, game: prints the project's path
+	local dir="$work/project.$1" settings="${settings_of[$2]:-}" firmware="${firmware_of[$2]:-}"
+	local pkg="$3" game="$4"
+	local fw=()
+	[ -n "$firmware" ] && mapfile -t fw < <(python3 -c 'import json,sys
+for k, v in json.loads(sys.argv[1]).items(): print("--firmware"); print(k + "=" + v)' "$firmware")
+	rm -rf "$dir" && mkdir -p "$dir" && cp "$game" "$dir/"
+	"$crun" --new-project "$dir/$1.chimeraProject" "$pkg" "$dir/$(basename "$game")" \
+		--settings "${settings:-"{}"}" "${fw[@]}" > "$dir/make.log" 2>&1 && echo "$dir/$1.chimeraProject"
+}
 
 settings_config "$work/config.base.ini" '{"machine": "se"}'
 if ! native_ram base; then
@@ -110,12 +127,14 @@ if ! native_ram real --set tape_loading=real; then
 elif ! run_frontend real "$work/config.real.ini" "$frames"; then
 	report "window:setting" FAIL "Chimera did not finish the run: $(tail -2 "$work/real.log" | tr '\n' ' ' | cut -c1-200)"
 elif cmp -s "$work/native.real.ram.bin" "$work/real.ram.bin" && ! cmp -s "$work/real.ram.bin" "$work/base.ram.bin"; then
-	report "window:setting" PASS "with Tape Loading set to real in Chimera's configuration the memory at frame $frames is another, and is the native build's with that setting"
+	report "window:setting" PASS "with Tape Loading set to real in the project's settings the memory at frame $frames is another, and is the native build's with that setting"
 else
 	report "window:setting" FAIL "real tape: same as native $(cmp -s "$work/native.real.ram.bin" "$work/real.ram.bin" && echo yes || echo no); differs from the fast tape $(cmp -s "$work/real.ram.bin" "$work/base.ram.bin" && echo no || echo yes)"
 fi
 
 python3 "$here/forget-controller.py" "$work/config.base.ini" "$work/config.keys.ini" "ZX Spectrum Keyboard and Joysticks"
+settings_of["$work/config.keys.ini"]="${settings_of[$work/config.base.ini]}"
+firmware_of["$work/config.keys.ini"]="${firmware_of[$work/config.base.ini]}"
 if run_frontend keys "$work/config.keys.ini" 1; then
 	if python3 "$here/check-keybinds.py" "$work/config.keys.ini" "$wb/default_keybinds.json" "ZX Spectrum Keyboard and Joysticks" > "$work/keys.txt" 2>&1; then
 		report "window:keys" PASS "$(cat "$work/keys.txt")"
