@@ -24,8 +24,8 @@ GCC 13, which is what a CI runner has, and runs the same.
 - For the tests that run the package in Chimera's headless runner, Chimera's
   engine too: `meson setup build/meson-linux --prefix "$PWD/build" --libdir dll`
   and `meson compile -C build/meson-linux` in the Chimera checkout. For the
-  window test, Chimera's window as well (`dotnet build`), `mono` and `Xvfb`.
-  Chimera's README lists what those need.
+  window test, Chimera's window as well (Chimera's `tools/ci-chimera.sh`
+  builds it; the window runs headless and needs no display).
 
 Nothing is downloaded while building, and upstream's `configure` and `make`
 are not used ("How it is built", in docs/PLAN.md, says why).
@@ -129,9 +129,7 @@ Chimera's own checks of the package (it loads, and its buttons, settings,
 firmware and file types are well formed) are run from the Chimera checkout:
 
 ```sh
-CHIMERA_CORES_DIR=<chimera>/build/Cores dotnet test \
-  source/gui/Chimera.Tests.Client.Common/Chimera.Tests.Client.Common.csproj -c Release \
-  --filter "FullyQualifiedName~InstalledCorePackagesTests|FullyQualifiedName~MnemonicUniquenessTests"
+CHIMERA_CORES_DIR=<chimera>/build/Cores <chimera>/build/meson-linux/source/ui/test-packages
 ```
 
 ## Running a program by hand

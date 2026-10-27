@@ -4,7 +4,7 @@ A ZX Spectrum core for [Chimera](https://github.com/ToolAssisted-run/chimera),
 the frontend for tool-assisted speedruns. It is built on
 [Fuse](https://fuse-emulator.sourceforge.net/), the Free Unix Spectrum
 Emulator, and produces one file, `fuse.chimeraCore`, that goes in Chimera's
-`Cores` folder. Chimera already has a Spectrum in its ares core, which ares
+`cores` folder. Chimera already has a Spectrum in its ares core, which ares
 itself calls experimental; this is a second one, with more machines and more
 file formats.
 
