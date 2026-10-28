@@ -3,7 +3,7 @@
   "slots": [
     {
       "id": "media",
-      "title": "Tape, Snapshot or Disc",
+      "title": "slot.media",
       "min": 0,
       "max": 1,
       "formats": [
@@ -30,7 +30,7 @@
         "dck",
         "rom"
       ],
-      "help": "What goes into the machine. A tape (.tap, .tzx, .pzx, .csw) is loaded as a tape recorder would play it. A snapshot (.z80, .sna, .szx and others) is a whole machine as it stood at one moment, and starts there. A disc is put into the drive of a machine that has one: .dsk for the +3, .trd and .scl for the Pentagon and Scorpion, and the others for the disc interfaces Fuse emulates. A .mdr file is a Microdrive cartridge, a .dck file a Timex cartridge, a .rom file an Interface 2 cartridge. With no file the machine starts in its BASIC. Fuse tells what a file is from its contents."
+      "help": "slot.media.help"
     }
   ]
 }

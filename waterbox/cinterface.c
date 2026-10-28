@@ -62,6 +62,11 @@ static const joystick_button kJoy[5] = {
 	JOYSTICK_BUTTON_UP, JOYSTICK_BUTTON_DOWN, JOYSTICK_BUTTON_LEFT, JOYSTICK_BUTTON_RIGHT, JOYSTICK_BUTTON_FIRE,
 };
 
+/* A text a person reads is a key of languages/en.json, each of its
+ * arguments after a TEXT_ARG (chimera docs/translations.md). TEXT_ARG is a
+ * string of its own so the byte after it is never read as more of its hex. */
+#define TEXT_ARG "\x1f"
+
 static char g_loadError[640];
 static int g_inited;
 static int g_inputRead;
@@ -149,20 +154,20 @@ ECL_EXPORT int Init(void)
 	static char machine[32], joy1[16], joy2[16], joyArg1[8], joyArg2[8], loading[16];
 	setting("machine", "48", machine, sizeof machine);
 	if (one_of(machine, kMachines) < 0) {
-		snprintf(g_loadError, sizeof g_loadError, "no such machine: %s", machine);
+		snprintf(g_loadError, sizeof g_loadError, "error.bad_machine" TEXT_ARG "%s", machine);
 		return 0;
 	}
 	const int j1 = one_of(setting("joystick_1", "kempston", joy1, sizeof joy1), kJoysticks);
 	const int j2 = one_of(setting("joystick_2", "none", joy2, sizeof joy2), kJoysticks);
 	if (j1 < 0 || j2 < 0) {
-		snprintf(g_loadError, sizeof g_loadError, "no such joystick: %s", j1 < 0 ? joy1 : joy2);
+		snprintf(g_loadError, sizeof g_loadError, "error.bad_joystick" TEXT_ARG "%s", j1 < 0 ? joy1 : joy2);
 		return 0;
 	}
 	snprintf(joyArg1, sizeof joyArg1, "%d", j1);
 	snprintf(joyArg2, sizeof joyArg2, "%d", j2);
 	setting("tape_loading", "fast", loading, sizeof loading);
 	if (strcmp(loading, "fast") && strcmp(loading, "real")) {
-		snprintf(g_loadError, sizeof g_loadError, "no such way of loading a tape: %s", loading);
+		snprintf(g_loadError, sizeof g_loadError, "error.bad_loading" TEXT_ARG "%s", loading);
 		return 0;
 	}
 	const int fast = !strcmp(loading, "fast");
@@ -215,8 +220,8 @@ ECL_EXPORT int Init(void)
 
 	chimera_last_error[0] = '\0';
 	if (fuse_chimera_init(argc, argv)) {
-		snprintf(g_loadError, sizeof g_loadError, "Fuse did not start: %s",
-			chimera_last_error[0] ? chimera_last_error : "it gave no reason");
+		snprintf(g_loadError, sizeof g_loadError, "error.not_started" TEXT_ARG "%s",
+			chimera_last_error[0] ? chimera_last_error : "error.no_reason");
 		return 0;
 	}
 	if (chimera_last_error[0] && file[0]) {

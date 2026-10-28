@@ -356,7 +356,7 @@ box x-norom - --set machine=pentagon --frames 5
 printf 'this is not a tape' > "$work/nothing.tap"
 box x-file "$work/nothing.tap" --set machine=se --frames 5
 why=""
-grep -q "no such machine: zx81" "$work/x-machine.err" || why="$why an unknown machine is not refused [$(tail -1 "$work/x-machine.err" | cut -c1-60)];"
+grep -q "error.bad_machine[^a-z]zx81" "$work/x-machine.err" || why="$why an unknown machine is not refused [$(tail -1 "$work/x-machine.err" | cut -c1-60)];"
 grep -q "couldn't find ROM '128p-0.rom'" "$work/x-norom.err" || why="$why a missing ROM is not named [$(tail -1 "$work/x-norom.err" | cut -c1-60)];"
 grep -q "^Init: " "$work/x-file.err" || why="$why a file that is no tape is not refused [$(tail -1 "$work/x-file.out" | cut -c1-60)];"
 if [ -z "$why" ]; then
